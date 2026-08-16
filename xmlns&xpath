@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>XML Book Catalog Transformer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #eef2f3;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    input[type="file"] {
+      padding: 8px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #28a745;
+      border: none;
+      color: white;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    #output {
+      margin-top: 30px;
+      padding: 20px;
+      background: white;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Book Catalog Transformer</h1>
+
+  <div class="form-group">
+    <label for="xmlFile">Upload XML File:</label>
+    <input type="file" id="xmlFile" accept=".xml">
+  </div>
+
+  <div class="form-group">
+    <label for="xslFile">Upload XSL File:</label>
+    <input type="file" id="xslFile" accept=".xsl">
+  </div>
+
+  <button onclick="performTransform()">Transform and View</button>
+
+  <div id="output">
+    <h3>Transformed Book List Will Appear Here</h3>
+  </div>
+
+  <script>
+    let xmlDoc = null;
+    let xslDoc = null;
+
+    document.getElementById('xmlFile').addEventListener('change', function () {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        xmlDoc = new DOMParser().parseFromString(e.target.result, "application/xml");
+      };
+      reader.readAsText(this.files[0]);
+    });
+
+    document.getElementById('xslFile').addEventListener('change', function () {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        xslDoc = new DOMParser().parseFromString(e.target.result, "application/xml");
+      };
+      reader.readAsText(this.files[0]);
+    });
+
+    function performTransform() {
+      const output = document.getElementById('output');
+
+      if (!xmlDoc || !xslDoc) {
+        output.innerHTML = "<p style='color:red;'>Please upload both XML and XSL files first.</p>";
+        return;
+      }
+
+      if (typeof XSLTProcessor !== "undefined") {
+        try {
+          const processor = new XSLTProcessor();
+          processor.importStylesheet(xslDoc);
+          const resultFragment = processor.transformToFragment(xmlDoc, document);
+
+          output.innerHTML = "";
+          output.appendChild(resultFragment);
+        } catch (error) {
+          output.innerHTML = "<p style='color:red;'>Transformation failed: " + error.message + "</p>";
+        }
+      } else {
+        output.innerHTML = "<p style='color:red;'>Your browser does not support XSLT processing.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
